@@ -1,7 +1,10 @@
 import sim.engine.Steppable;
-import sim.util.*;
+import sim.field.grid.DoubleGrid2D;
+import sim.field.grid.IntGrid2D;
+import sim.field.grid.SparseGrid2D;
 import sim.util.IntBag;
 import sim.engine.*;
+import java.lang.Math.*;
 
 
 public class Lab implements Steppable {
@@ -27,7 +30,48 @@ public class Lab implements Steppable {
     }
 
     public void step(SimState state){
-        // System.out.println(this.labId);
+        age++;
+        updateTopic(state, ScienceFunding.labs);
+        doResearch(state, ScienceFunding.publications, ScienceFunding.landscape);
+    }
+
+    private void updateTopic(SimState state, SparseGrid2D landscape){
+        // CHANGE FOR LEVY FLIGHT //
+        if(state.random.nextInt(100) >= 50) { // 10% chance
+            int Xvariation = state.random.nextInt(3);
+            int Yvariation = state.random.nextInt(3);
+            if (state.random.nextBoolean()) {
+                Xvariation = Xvariation * -1;
+            }
+            if (state.random.nextBoolean()) {
+                Yvariation = Yvariation * -1;
+            }
+            this.topicX = this.topicX + Xvariation;
+            this.topicY = this.topicY + Yvariation;
+        }
+        landscape.setObjectLocation(this, this.topicX, this.topicY);
+    }
+
+    private void doResearch(SimState state, IntGrid2D publications, DoubleGrid2D landscape){
+        int numberOfResearchers = 1 + this.numberOfPostdocs; // how many will attempt to do research this turn? PI (1) + every postdoc
+
+        double probabilityOfResearch = 1 - (ScienceFunding.effortConstant * Math.log10(this.effort)); // calculate probability of doing research this turn
+
+        if(state.random.nextDouble() < probabilityOfResearch) { // if it does research after probability roll,
+            boolean replication = false; // is it a replication?
+            if (state.random.nextInt(100) < ScienceFunding.probabilityOfReplication && publications.get(this.topicX, this.topicY) > 0) { // check if replication (left) and if there's anything to replicate (right)
+                replication = true;
+            }
+
+            boolean hypothesisTruth; // is hypothesis true?
+
+            double probabilityOfTruth = landscape.get(this.topicX, this.topicY); // base rate at this time
+            System.out.println(probabilityOfTruth);
+            if(state.random.nextDouble() < probabilityOfTruth) { // roll for truth
+                hypothesisTruth = true;
+            } else {hypothesisTruth = false;}
+
+        }
     }
 
 

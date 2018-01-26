@@ -10,10 +10,13 @@ public class ScienceFunding extends SimState {
     public int numberOfEstablishedTopics = 5; //
     static Bag allLabs; // just in case, bag with all labs
     static int latestId; // track labs to assign ids
+    static double effortConstant = 0.2; // constant that determines how much effort reduces research output;
+    static int probabilityOfReplication = 33; // how often will research be a publication? in %
 
 
-    static DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape); // initialize underlying landscape
+    static DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape, 0.001); // initialize underlying landscape
     static SparseGrid2D labs = new SparseGrid2D(sizeOfLandscape, sizeOfLandscape); // initialize movement of labs
+    static IntGrid2D publications = new IntGrid2D(sizeOfLandscape, sizeOfLandscape, 0); // initialize grid of number of publications
 
     public ScienceFunding(long seed){
         super(seed);
@@ -22,19 +25,23 @@ public class ScienceFunding extends SimState {
     public void start(){
         super.start();
         labs.clear(); // clear labs location
-        landscape.setTo(0.001); // initialize landscape to minimum rate of 0.001
 
         Bag establishedTopics = new Bag(); // allocate established topics so they don't repeat by chance.
         allLabs = new Bag(); // initialize bag of labs
 
         for(int i = 0; i < numberOfEstablishedTopics; i++){ // define and allocate established topics
             Double2D establishedTopic;
+            int xValue;
+            int yValue;
             do {
-                int xValue = random.nextInt(200);
-                int yValue = random.nextInt(200);
+                xValue = random.nextInt(200);
+                yValue = random.nextInt(200);
                 establishedTopic = new Double2D(xValue, yValue);
             } while(establishedTopics.contains(establishedTopic));
             establishedTopics.add(establishedTopic);
+            //test//
+            publications.set(xValue, yValue, 5); // add initial number of publications to established topic. because we know it's zero, just set it. but have to add get method for summing publication.
+            // test //
             LandscapeUtils.increaseAndDisperse(landscape, (int) establishedTopic.x, (int) establishedTopic.y, 0.499);
         }
 

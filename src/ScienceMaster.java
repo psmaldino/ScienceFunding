@@ -1,6 +1,9 @@
 import sim.engine.*;
 import sim.field.grid.SparseGrid2D;
 import sim.util.*;
+import java.util.Comparator;
+
+import java.util.Comparator;
 
 public class ScienceMaster implements Steppable { // It who determines the life and death of science labs
 
@@ -18,9 +21,15 @@ public class ScienceMaster implements Steppable { // It who determines the life 
             } while(chosenLabs.contains(aLab));
             chosenLabs.add(aLab);
         }
-        Lab dyingLab = (Lab) chosenLabs.get(state.random.nextInt(chosenLabs.size())); // chose one at random
+        chosenLabs.sort((Comparator<Lab>) (L1, L2) -> { // order them according to age
+            int L1Age = L1.age;
+            int L2Age = L2.age;
+            if(L1Age > L2Age){return 1;}
+            else if(L1Age == L2Age){return 0;}
+            else{return -1;}});
+        Lab dyingLab = (Lab) chosenLabs.pop(); // get the oldest one
         dyingLab.stoppable.stop(); // remove from schedule (die!!)
-        spaceLabs.remove(dyingLab);
+        spaceLabs.remove(dyingLab); // remove it from epistemic landscape
         return dyingLab;
     }
 
@@ -41,8 +50,9 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         Lab reproducedLab = (Lab) ticketBag.get(state.random.nextInt(ticketBag.size())); // grab a random one from the ticket bag. more postdocs, more chances.
 
         ScienceFunding.latestId++; // update id for new lab
-
         Lab newLab = new Lab(ScienceFunding.latestId, reproducedLab.topicX, reproducedLab.topicY); // create new lab before mutation
+
+        // topic mutation //
         int topicMutationX = state.random.nextInt(5); // mutate X
         if(state.random.nextBoolean()){
             topicMutationX = topicMutationX * -1;
@@ -53,10 +63,14 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         }
         newLab.topicX += topicMutationX;
         newLab.topicY += topicMutationY;
+
+        // methodology mutation //
+
         newLab.effort = reproducedLab.effort; // copy methodology. NEED TO CHANGE THIS FOR GAUSSIAN
-        ScienceFunding.allLabs.remove(dyingLab); // remove it from list
-        ScienceFunding.allLabs.add(newLab);
-        newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // allocate stoppable to kill in the future
-        spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY);
+
+        ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
+        ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
+        newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // add new lab to schedule and allocate stoppable to kill in the future
+        spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // ad new lab to epistemic landscape
     }
 }
