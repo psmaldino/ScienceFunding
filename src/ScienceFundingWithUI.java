@@ -1,7 +1,5 @@
 import sim.display.*;
 import sim.engine.SimState;
-import sim.field.grid.SparseGrid2D;
-import sim.portrayal.continuous.ContinuousPortrayal2D;
 import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.grid.ValueGridPortrayal2D;
 import sim.portrayal.simple.LabelledPortrayal2D;

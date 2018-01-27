@@ -9,7 +9,6 @@ public class LandscapeUtils {
         Double originalValue = landscape.get(originalCellX, originalCellY);
         Double2D originalCell = new Double2D(originalCellX, originalCellY);
         landscape.set(originalCellX, originalCellY, (originalValue + amount));
-
         Bag previousChanges = new Bag();
         previousChanges.add(originalCell);
         changeNeighbors(landscape, originalCell, originalCell, amount, previousChanges);
@@ -29,37 +28,36 @@ public class LandscapeUtils {
         landscape.getMooreNeighbors((int) thisCell.x, (int) thisCell.y, 1, 0, false, neighborsValues, neighborsX, neighborsY);
         for (int i = 0; i < neighborsX.size(); i++) {
             Double2D thisNeighbor = new Double2D(neighborsX.get(i), neighborsY.get(i));
+            double thisNeighborValue = landscape.get((int) thisNeighbor.x, (int) thisNeighbor.y);
             if ((thisNeighbor.x == originalCell.x) && (thisNeighbor.y == originalCell.y)) { // if this neighbor is the original cell
                 continue;
             }
-            if (previousChanges.contains(thisNeighbor)) { // if the cell wasn't changed before
+            if (previousChanges.contains(thisNeighbor)) { // if the cell was changed before
                 continue;
             }
             Double newValue = getValueWithDispersal(landscape, originalCell, thisNeighbor, originalAmount); // get the new value for the cell
-            if (newValue >= 0.001) {
+            if (newValue != thisNeighborValue) { // if it changed above precision level
                 landscape.set(neighborsX.get(i), neighborsY.get(i), newValue); // change the value in the landscape
                 previousChanges.add(thisNeighbor); // add the cell to the previously changed cells to avoid infinite recursion
                 changeNeighbors(landscape, originalCell, thisNeighbor, originalAmount, previousChanges); // recursively call function
-            } else {
-                landscape.set(neighborsX.get(i), neighborsY.get(i), 0.001); // if it's the minimum value possible, stop.
+            } else { // if it didn't change because change was over precision level
+                landscape.set(neighborsX.get(i), neighborsY.get(i), thisNeighborValue); // set the same value;
             }
         }
     }
 
-    static double getValueWithDispersal(DoubleGrid2D landscape, Double2D originalCell, Double2D thisCell, double originalAmount){ // returns amount to be added after dispersion. only for initial allocation
-        int newX = (int) thisCell.x; // x and y locations of cell to be modified
-        int newY = (int) thisCell.y;
+    static double getValueWithDispersal(DoubleGrid2D landscape, Double2D originalCell, Double2D thisCell, double originalAmount) { // returns amount to be added after dispersion. only for initial allocation
 
+        double oldValue = landscape.get((int) thisCell.x, (int) thisCell.y);
         double eucDistance = originalCell.distance(thisCell); //euclidean distance
         double newValue = pow(originalAmount, eucDistance); // original amount to the power of the euclidean distance
-
-        if(newValue > 0.000001) { // arbitrary minimum precision to avoid infinite recursion
-            double oldValue = landscape.get((int) thisCell.x, (int) thisCell.y);
+        if(newValue >= 0.00000001){ // maximum precision to avoid recursion
             newValue += oldValue;
-            return newValue;
-        } // set value to value + amount after dispersed
-        else{
-            return newValue;
+        } else {
+            newValue = oldValue;
         }
+        if(newValue >= 0.5){
+            return 0.5;
+        } else{return newValue;}
     }
 }

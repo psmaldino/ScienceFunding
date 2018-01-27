@@ -6,8 +6,12 @@ import java.util.Comparator;
 import java.util.Comparator;
 
 public class ScienceMaster implements Steppable { // It who determines the life and death of science labs
+    static double highestPublication; // the highest publication record measured for t-1.
+
 
     public void step(SimState state){
+        updateHighest();
+
         Lab dyingLab = killALab(state, ScienceFunding.allLabs, ScienceFunding.labs);
         createALab(state, ScienceFunding.allLabs, dyingLab, ScienceFunding.labs);
     }
@@ -24,9 +28,8 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         chosenLabs.sort((Comparator<Lab>) (L1, L2) -> { // order them according to age
             int L1Age = L1.age;
             int L2Age = L2.age;
-            if(L1Age > L2Age){return 1;}
-            else if(L1Age == L2Age){return 0;}
-            else{return -1;}});
+            return Integer.compare(L1Age, L2Age);
+        });
         Lab dyingLab = (Lab) chosenLabs.pop(); // get the oldest one
         dyingLab.stoppable.stop(); // remove from schedule (die!!)
         spaceLabs.remove(dyingLab); // remove it from epistemic landscape
@@ -63,6 +66,12 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         }
         newLab.topicX += topicMutationX;
         newLab.topicY += topicMutationY;
+        if (newLab.topicX >= 200){
+            newLab.topicX = 199;
+        } else if(newLab.topicX < 0){newLab.topicX = 0;}
+        if(newLab.topicY >= 200) {
+            newLab.topicY = 199;
+        } else if(newLab.topicY < 0) {newLab.topicY = 0;}
 
         // methodology mutation //
 
@@ -72,5 +81,17 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
         newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // add new lab to schedule and allocate stoppable to kill in the future
         spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // ad new lab to epistemic landscape
+    }
+
+    private void updateHighest(){ // look through bag for the highest one
+        double highestYet = 0;
+        for(int i = 0; i < ScienceFunding.allLabs.size(); i++){
+            Lab aLab = (Lab) ScienceFunding.allLabs.get(i);
+            double record = aLab.clout;
+            if(record > highestYet){
+                highestYet = record;
+            }
+        }
+        highestPublication = highestYet;
     }
 }

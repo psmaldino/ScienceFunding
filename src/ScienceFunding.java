@@ -4,7 +4,7 @@ import sim.field.grid.*;
 import sim.util.*;
 
 public class ScienceFunding extends SimState {
-    public double powerLevel = 0.8; // W in the document. the statistical power.
+    static double powerLevel = 0.8; // W in the document. the statistical power.
     static int sizeOfLandscape = 200; // width and height of square landscape.
     public int numberOfLabs = 100; // how many labs?
     public int numberOfEstablishedTopics = 5; //
@@ -12,6 +12,12 @@ public class ScienceFunding extends SimState {
     static int latestId; // track labs to assign ids
     static double effortConstant = 0.2; // constant that determines how much effort reduces research output;
     static int probabilityOfReplication = 33; // how often will research be a publication? in %
+    static int probabilityOfPublishingNegative = 25; // how often journals publish negative results
+
+    static double costOfApplication = 0.2; // how much you are affected by applying to a grant.
+
+    static double weightOfInnovation = 0.5; // -1 to 1
+    static double weightOfRecord = 0.5; // 0 to 1. must sum more than 0
 
 
     static DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape, 0.001); // initialize underlying landscape
