@@ -75,7 +75,7 @@ public class ScienceMaster implements Steppable { // It who determines the life 
 
         // methodology mutation //
 
-        newLab.effort = reproducedLab.effort; // copy methodology. NEED TO CHANGE THIS FOR GAUSSIAN
+        newLab.effort = reproducedLab.effort; // copy methodology. NEED TO CHANGE THIS FOR MUTATION OF GAUSSIAN
 
         ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
         ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
