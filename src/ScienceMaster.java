@@ -55,7 +55,7 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         ScienceFunding.latestId++; // update id for new lab
         Lab newLab = new Lab(ScienceFunding.latestId, reproducedLab.topicX, reproducedLab.topicY); // create new lab before mutation
 
-        // topic mutation //
+        // topic mutation // TODO FIX MUTATION
         int topicMutationX = state.random.nextInt(5); // mutate X
         if(state.random.nextBoolean()){
             topicMutationX = topicMutationX * -1;
@@ -75,7 +75,7 @@ public class ScienceMaster implements Steppable { // It who determines the life 
 
         // methodology mutation //
 
-        newLab.effort = reproducedLab.effort; // copy methodology. NEED TO CHANGE THIS FOR MUTATION OF GAUSSIAN
+        newLab.effort = reproducedLab.effort; // copy methodology. TODO NEED TO CHANGE THIS FOR MUTATION OF GAUSSIAN
 
         ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
         ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs

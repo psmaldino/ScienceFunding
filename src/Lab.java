@@ -37,7 +37,7 @@ public class Lab implements Steppable {
     }
 
     private void updateTopic(SimState state, SparseGrid2D landscape){
-        // CHANGE FOR LEVY FLIGHT //
+        // TODO CHANGE FOR LEVY FLIGHT //
         if(state.random.nextInt(100) >= 50) { // 10% chance
             int Xvariation = state.random.nextInt(3);
             int Yvariation = state.random.nextInt(3);
