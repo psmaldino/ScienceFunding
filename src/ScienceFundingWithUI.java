@@ -1,5 +1,7 @@
 import sim.display.*;
 import sim.engine.SimState;
+import sim.portrayal.DrawInfo2D;
+import sim.portrayal.Inspector;
 import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.grid.ValueGridPortrayal2D;
 import sim.portrayal.simple.LabelledPortrayal2D;
@@ -33,6 +35,16 @@ public class ScienceFundingWithUI extends GUIState {
         return "Science Funding";
     }
 
+
+    public Object getSimulationInspectedObject() {return state;}
+
+    public Inspector getInspector(){ // inspector of model globals
+        Inspector i = super.getInspector();
+        i.setVolatile(true);
+        return i;
+    }
+
+
     public void start(){
         super.start();
         setupPortrayals();
@@ -48,10 +60,21 @@ public class ScienceFundingWithUI extends GUIState {
 
         landscapePortrayal.setField(scienceFunding.landscape);
         labsPortrayal.setField(scienceFunding.labs);
-        labsPortrayal.setPortrayalForAll(
-                new LabelledPortrayal2D(
-                        new OvalPortrayal2D(),
-                1.0, null, Color.black, false));
+        labsPortrayal.setPortrayalForAll(new OvalPortrayal2D(){
+            public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
+                Lab lab = (Lab) object;
+
+                int fundingShade = (int) ((lab.getNumberOfPostdocs() * 10) + 50);
+                if (fundingShade > 255) {
+                    fundingShade = 255;
+                }
+                if(fundingShade == 0){
+                    fundingShade = 1;
+                }
+                paint = new Color(fundingShade, 0, 255 - fundingShade);
+                super.draw(object, graphics, info);
+            }
+        });
 
         SimpleColorMap cm = new SimpleColorMap();
         cm.setLevels(0.001, 0.5, new Color(0,0,0,0), new Color(255,0,0,150));

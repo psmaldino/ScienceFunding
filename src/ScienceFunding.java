@@ -83,18 +83,31 @@ public class ScienceFunding extends SimState {
             thisLab.effort = 75;
             allLabs.add(thisLab);
             labs.setObjectLocation(thisLab, myX, myY);
-            thisLab.stoppable = schedule.scheduleRepeating(thisLab, 1,1);
+            thisLab.stoppable = schedule.scheduleRepeating(thisLab, 1,1); // schedule the labs after the master
         }
 
-        ScienceMaster theMaster = new ScienceMaster();
+        ScienceMaster theMaster = new ScienceMaster(); // schedule master
         schedule.scheduleRepeating(theMaster, 0, 1);
-    }
 
+        Agency theAgency = new Agency();  // initialize and schedule the funding agency after labs.
+        schedule.scheduleRepeating(theAgency, 2, 1);
+
+        Globals theGlobals = new Globals();
+        schedule.scheduleRepeating(theGlobals, 3, 1); // schedule the global updater after everything else. updates every X.
+    }
 
     public static void main(String[] args){
         {
             doLoop(ScienceFunding.class, args);
             System.exit(0);
         }
+    }
+
+    public double getFalseDiscoveryRate(){
+        return Globals.falseDiscoveryRate;
+    }
+
+    public double getRateOfDiscoveries(){
+        return Globals.rateOfDiscovery;
     }
 }

@@ -2,25 +2,26 @@ import sim.engine.Steppable;
 import sim.field.grid.DoubleGrid2D;
 import sim.field.grid.IntGrid2D;
 import sim.field.grid.SparseGrid2D;
+import sim.util.Double2D;
 import sim.util.IntBag;
 import sim.engine.*;
 
 
 public class Lab implements Steppable {
 
-    public int labId; // tracks the unique identity of a specific lab
+    private int labId; // tracks the unique identity of a specific lab
     int topicX; // location
     int topicY; //
-    public int numberOfPostdocs; // how many postdocs does this have at the beginning of the cycle?
-    public IntBag grants; // how many grants does it have, and how long they have. each grant is a descending counter.
-    public int age; // how many cycles has this lab been alive for?
-    public double clout; // prestige due to publishing.
-    public double effort;
-    public Stoppable stoppable;
-    public double probabilityOfApplying = 0.2; // probability of applying for a grant each cycle
-    public double utility;
+    int numberOfPostdocs; // how many postdocs does this have at the beginning of the cycle?
+    IntBag grants; // how many grants does it have, and how long they have. each grant is a descending counter.
+    int age; // how many cycles has this lab been alive for?
+    double clout; // prestige due to publishing.
+    double effort; // effort put into research. 1 to 100. initialized at 75 at the beginning of simulation.
+    Stoppable stoppable; // stoppable to kill the lab
+    private double probabilityOfApplying = 0.2; // probability of applying for a grant each cycle
+    private double utility; // utility for applying to grants
 
-    public Lab(int labId, int topicX, int topicY){ // create lab at designated location
+    Lab(int labId, int topicX, int topicY){ // create lab at designated location
         this.labId = labId;
         this.topicX = topicX;
         this.topicY = topicY;
@@ -32,8 +33,17 @@ public class Lab implements Steppable {
 
     public void step(SimState state){
         age++;
+
+        if(state.schedule.getSteps() != 0) { // don't do this the first turn.
+            checkFunding(); // update your funding status and fire postdocs without funding TODO this uses temporary code, but I think it can be final???
+        }
         updateTopic(state, ScienceFunding.labs);
         doResearch(state, ScienceFunding.publications, ScienceFunding.landscape);
+        updateFunding(); // update your funding after a year of research.
+    }
+
+    private void checkFunding(){
+        this.numberOfPostdocs = grants.size(); // for each active grant, add a postdoc for this year.
     }
 
     private void updateTopic(SimState state, SparseGrid2D landscape){
@@ -66,7 +76,7 @@ public class Lab implements Steppable {
     }
 
     private void doResearch(SimState state, IntGrid2D publications, DoubleGrid2D landscape){
-        boolean appliedToGrant = applyToGrant(state, landscape);
+        boolean appliedToGrant = applyToGrant(state, landscape); // did you apply to a grant this turn?
 
         int numberOfResearchers = 1 + this.numberOfPostdocs; // how many will attempt to do research this turn? PI (1) + every postdoc
 
@@ -115,6 +125,8 @@ public class Lab implements Steppable {
                     publications.set(this.topicX, this.topicY, currentPublicationsTopic + 1); // add a publication to this topic
                     LandscapeUtils.increaseAndDisperse(landscape, this.topicX, this.topicY, 0.001); // increase by 0.001 every time you publish
 
+                    if(labIsRight){Globals.falseDiscoveries.add(0);} else {Globals.falseDiscoveries.add(1);} // if you're publishing a false discovery, add 1 to globals. else, add 0.
+
                     if (replication) { // if it's a replication'
                         this.clout += 0.5; // add 0.5 to your publication payoff
                     } else {
@@ -123,6 +135,7 @@ public class Lab implements Steppable {
 
                 }
                 if (!publishingEffect && (state.random.nextInt(100) < ScienceFunding.probabilityOfPublishingNegative)) { // if you're publishing negative, roll for negative publication. if you get it, publish.
+                    if(labIsRight){Globals.falseDiscoveries.add(0);} else {Globals.falseDiscoveries.add(1);} // if you're publishing a false discovery, add 1 to globals. else, add 0.
                     int currentPublicationsTopic = publications.get(this.topicX, this.topicY); // how many publications are there in this topic?
                     publications.set(this.topicX, this.topicY, currentPublicationsTopic + 1); // add a publication to this topic
                     LandscapeUtils.increaseAndDisperse(landscape, this.topicX, this.topicY, 0.001); // increase by 0.001 every time you publish
@@ -137,24 +150,62 @@ public class Lab implements Steppable {
     }
 
     private boolean applyToGrant(SimState state, DoubleGrid2D landscape){
+        // calculate utility //
+        double thisRate = landscape.get(this.topicX, this.topicY);
+        double innovativeness = 1 - ((Math.log10(thisRate / 0.001)) / (Math.log10(0.5 / 0.001))); // innovativeness as per document of model description.
+        double relativeRecord = this.clout / ScienceMaster.highestPublication; // your record in relationship with best record
+        this.utility = ScienceFunding.weightOfInnovation * innovativeness + ScienceFunding.weightOfRecord * relativeRecord; // utility as per model description. update your utility only if you're applying. agency will add the error.
+        //
 
         // apply for funding to agency //
 
         if(state.random.nextDouble() < this.probabilityOfApplying){
-            // calculate utility //
-            double thisRate = landscape.get(this.topicX, this.topicY);
-            double innovativeness = 1 - ((Math.log10(thisRate / 0.001)) / (Math.log10(0.5 / 0.001))); // innovativeness as per document of model description.
-            double relativeRecord = this.clout / ScienceMaster.highestPublication; // your record in relationship with best record
-            this.utility = ScienceFunding.weightOfInnovation * innovativeness + ScienceFunding.weightOfRecord * relativeRecord +  state.random.nextGaussian(); // utility as per model description. update your utility only if you're applying.
-            //
-
             Agency.thisTurnsApplicants.add(this); // add myself to the bag of applicants for money
             return true; // spit out boolean for logic flow
         } else { return false;}
         //
     }
 
-    public String toString(){
-        return "" + labId;
+    private void updateFunding(){  // reduce each grant's year by a year, and clear the ones that run out.
+        for(int i = 0; i < this.grants.size(); i++){ // loop through grants, diminish them by one, if it's 0 delete it.
+            int myGrant = this.grants.get(i);
+            myGrant--; // diminish by one year for the year just past.
+            if(myGrant <= 0){
+                this.grants.remove(myGrant); // remove yourself if you ran out.
+            }
+        }
+
+    }
+
+    public double getUtility() {
+        return utility;
+    }
+
+    public void setUtility(double newUtility){
+        this.utility = newUtility;
+    }
+
+    public double getClout(){
+        return clout;
+    }
+
+    public int getNumberOfPostdocs(){
+        return numberOfPostdocs;
+    }
+
+    public int getAge(){
+        return age;
+    }
+
+    public int getLabId(){
+        return labId;
+    }
+
+    public Double2D getLocation(){
+        return new Double2D(topicX, topicY);
+    }
+
+    public int[] getGrants(){
+        return grants.toArray();
     }
 }
