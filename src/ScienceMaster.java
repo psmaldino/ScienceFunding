@@ -8,7 +8,6 @@ import java.util.Comparator;
 public class ScienceMaster implements Steppable { // It who determines the life and death of science labs
     static double highestPublication; // the highest publication record measured for t-1.
 
-
     public void step(SimState state){
         updateHighest();
 
@@ -55,32 +54,47 @@ public class ScienceMaster implements Steppable { // It who determines the life 
         ScienceFunding.latestId++; // update id for new lab
         Lab newLab = new Lab(ScienceFunding.latestId, reproducedLab.topicX, reproducedLab.topicY); // create new lab before mutation
 
-        // topic mutation // TODO FIX MUTATION
-        int topicMutationX = state.random.nextInt(5); // mutate X
-        if(state.random.nextBoolean()){
-            topicMutationX = topicMutationX * -1;
-        }
-        int topicMutationY = state.random.nextInt(5); // mutate Y
-        if(state.random.nextBoolean()){
-            topicMutationY = topicMutationY * -1;
-        }
-        newLab.topicX += topicMutationX;
-        newLab.topicY += topicMutationY;
-        if (newLab.topicX >= 200){
-            newLab.topicX = 199;
-        } else if(newLab.topicX < 0){newLab.topicX = 0;}
-        if(newLab.topicY >= 200) {
-            newLab.topicY = 199;
-        } else if(newLab.topicY < 0) {newLab.topicY = 0;}
+        // topic mutation //
+
+        do {
+            int Xvariation = state.random.nextInt(2); // move 2 steps max
+            int Yvariation = state.random.nextInt(2); // move 2 steps max
+            if (state.random.nextBoolean()) { // positive or negative?
+                Xvariation = Xvariation * -1;
+            }
+            if (state.random.nextBoolean()) { // positive or negative?
+                Yvariation = Yvariation * -1;
+            }
+            newLab.topicX = newLab.topicX + Xvariation;
+            newLab.topicY = newLab.topicY + Yvariation;
+        } while((newLab.topicX >= 200 || newLab.topicX < 0) || (newLab.topicY >= 200 || newLab.topicY < 0)); // cap both at 0 - 199.
 
         // methodology mutation //
 
-        newLab.effort = reproducedLab.effort; // copy methodology. TODO NEED TO CHANGE THIS FOR MUTATION OF GAUSSIAN
+        newLab.effort = reproducedLab.effort; // copy methodology.
+
+        if(state.random.nextDouble() < ScienceFunding.probabilityOfMutationEffort) { // roll for mutation
+            do {double effortMutation = state.random.nextGaussian(); // draw from a gaussian with stand dev of 1. cap final value at 1 - 100.
+            reproducedLab.effort += effortMutation;}
+            while(reproducedLab.effort > 100 || reproducedLab.effort < 1);
+
+        }
+
+        // applying to funding mutation //
+
+        if(ScienceFunding.mutateFunding && state.random.nextDouble() < ScienceFunding.probabilityOfMutationFunding){ // depends on global parameter
+            do{
+                double mutation = state.random.nextGaussian() * 0.001; // 1% of variability
+                reproducedLab.probabilityOfApplying += mutation;
+            } while(reproducedLab.probabilityOfApplying < 0.0001 || reproducedLab.probabilityOfApplying > 1); // cap at 0.0001 - 1.
+        }
+
+        // kill old lab and add new lab //
 
         ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
         ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
         newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // add new lab to schedule and allocate stoppable to kill in the future
-        spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // ad new lab to epistemic landscape
+        spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // add new lab to epistemic landscape
     }
 
     private void updateHighest(){ // look through bag for the highest one

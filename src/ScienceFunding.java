@@ -11,13 +11,19 @@ public class ScienceFunding extends SimState {
     static Bag allLabs; // just in case, bag with all labs
     static int latestId; // track labs to assign ids
     static double effortConstant = 0.2; // constant that determines how much effort reduces research output;
-    static int probabilityOfReplication = 33; // how often will research be a publication? in %
+    static double probabilityOfReplication = 0.3; // how often will research be a publication? in %
     static int probabilityOfPublishingNegative = 25; // how often journals publish negative results
 
     static double costOfApplication = 0.2; // how much you are affected by applying to a grant.
 
     static double weightOfInnovation = 0.5; // -1 to 1
-    static double weightOfRecord = 0.5; // 0 to 1. must sum more than 0
+    static double weightOfRecord = 0.5; // 0 to 1. this + weight of innovation must sum more than 0
+
+    // mutation parameters //
+
+    static double probabilityOfMutationEffort = 0.01;
+    static boolean mutateFunding = false; // does the probability of applying for funding evolve?
+    static double probabilityOfMutationFunding = 0.01;
 
 
     static DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape, 0.001); // initialize underlying landscape
@@ -53,31 +59,22 @@ public class ScienceFunding extends SimState {
 
         for(int i = 0; i <  numberOfLabs; i++){ // allocate labs near established topics
             Double2D myTopic = (Double2D) establishedTopics.get(random.nextInt(establishedTopics.size()));
-            int myXNearTopic = random.nextInt(5); // how much will I change the position from established topic?
-            if(random.nextBoolean()) {// with a random chance, make it negative
-                myXNearTopic = -1 * myXNearTopic;
-            }
-            int myYNearTopic = random.nextInt(5); // how much will I change the position from established topic?
-            if(random.nextBoolean()) {// with a random chance, make it negative
-                myYNearTopic = -1 * myYNearTopic;
-            }
-            int myX = (int) myTopic.x + myXNearTopic;
-            if(myX >= 200){ // ceiling at 200
-                myX = 199;
-            }
-            if(myX < 0){// floor at 0
-                myX = 0;
-            }
-            int myY = (int) myTopic.y + myYNearTopic;
-            if(myY >= 200){
-                myY = 199;
-            }
-            if (myY < 0){
-                myY = 0;
-            }
+            int myX;
+            int myY;
+            do{
+                int myXNearTopic = random.nextInt(3); // how much will I change the position from established topic?
+                int myYNearTopic = random.nextInt(3); // how much will I change the position from established topic?
+                if(random.nextBoolean()) { // with a random chance, make it negative
+                    myXNearTopic = -1 * myXNearTopic; }
+                if(random.nextBoolean()) { // with a random chance, make it negative
+                    myYNearTopic = -1 * myYNearTopic; }
+                myX = (int) myTopic.x + myXNearTopic;
+                myY = (int) myTopic.y + myYNearTopic;
+            } while ((myX >= 200 || myX < 0) || (myY >= 200 || myY < 0));
+
             Lab thisLab = new Lab(i, myX, myY);
             latestId = i;
-            if(random.nextInt(100) >= 95){// 5% chance of having a postdoc from beginning.
+            if(random.nextDouble() < 0.05){// 5% chance of having a postdoc from beginning.
                 thisLab.numberOfPostdocs += 1;
             }
             thisLab.effort = 75;

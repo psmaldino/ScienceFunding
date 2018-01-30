@@ -18,7 +18,7 @@ public class Lab implements Steppable {
     double clout; // prestige due to publishing.
     double effort; // effort put into research. 1 to 100. initialized at 75 at the beginning of simulation.
     Stoppable stoppable; // stoppable to kill the lab
-    private double probabilityOfApplying = 0.2; // probability of applying for a grant each cycle
+    double probabilityOfApplying = 0.2; // probability of applying for a grant each cycle
     private double utility; // utility for applying to grants
 
     Lab(int labId, int topicX, int topicY){ // create lab at designated location
@@ -33,9 +33,8 @@ public class Lab implements Steppable {
 
     public void step(SimState state){
         age++;
-
         if(state.schedule.getSteps() != 0) { // don't do this the first turn.
-            checkFunding(); // update your funding status and fire postdocs without funding TODO this uses temporary code, but I think it can be final???
+            checkFunding(); // update your funding status and fire postdocs without funding
         }
         updateTopic(state, ScienceFunding.labs);
         doResearch(state, ScienceFunding.publications, ScienceFunding.landscape);
@@ -49,28 +48,18 @@ public class Lab implements Steppable {
     private void updateTopic(SimState state, SparseGrid2D landscape){
         // TODO CHANGE FOR LEVY FLIGHT //
         if(state.random.nextInt(100) >= 50) { // 10% chance
-            int Xvariation = state.random.nextInt(3);
-            int Yvariation = state.random.nextInt(3);
-            if (state.random.nextBoolean()) {
-                Xvariation = Xvariation * -1;
-            }
-            if (state.random.nextBoolean()) {
-                Yvariation = Yvariation * -1;
-            }
-            this.topicX = this.topicX + Xvariation;
-            this.topicY = this.topicY + Yvariation;
-            if(this.topicX >= 200){
-                this.topicX = 199;
-            }
-            if(this.topicX < 0){
-                this.topicX = 0;
-            }
-            if(this.topicY >= 200){
-                this.topicY = 199;
-            }
-            if(this.topicY < 0){
-                this.topicY = 0;
-            }
+            do {
+                int Xvariation = state.random.nextInt(2); // move 2 steps max
+                int Yvariation = state.random.nextInt(2); // move 2 steps max
+                if (state.random.nextBoolean()) { // positive or negative?
+                    Xvariation = Xvariation * -1;
+                }
+                if (state.random.nextBoolean()) { // positive or negative?
+                    Yvariation = Yvariation * -1;
+                }
+                this.topicX = this.topicX + Xvariation;
+                this.topicY = this.topicY + Yvariation;
+            } while((this.topicX >= 200 || this.topicX < 0) || (this.topicY >= 200 || this.topicY < 0)); // cap both at 0 - 199.
         }
         landscape.setObjectLocation(this, this.topicX, this.topicY);
     }
@@ -89,12 +78,11 @@ public class Lab implements Steppable {
 
             if (state.random.nextDouble() < probabilityOfResearch) { // if it does research after probability roll,
                 boolean replication = false; // is it a replication?
-                if (state.random.nextInt(100) < ScienceFunding.probabilityOfReplication && publications.get(this.topicX, this.topicY) > 0) { // check if replication (left) and if there's anything to replicate (right)
+                if (state.random.nextDouble() < ScienceFunding.probabilityOfReplication && publications.get(this.topicX, this.topicY) > 0) { // check if replication (left) and if there's anything to replicate (right)
                     replication = true;
                 }
 
                 boolean hypothesisTruth; // is hypothesis true?
-                // roll for truth
                 hypothesisTruth = state.random.nextDouble() < landscape.get(this.topicX, this.topicY); // value on landscape is the probability that it's true
 
                 double labFalsePositive = ScienceFunding.powerLevel / (1 + (1 - ScienceFunding.powerLevel) * this.effort); // calculate false positive rate. this is always the same, so maybe it's worth it to put it on a parameter.
@@ -115,7 +103,7 @@ public class Lab implements Steppable {
                         labIsRight = false; // you think it's positive when it's negative
                         publishingEffect = true; // you publish positive
                     } else {
-                        labIsRight = false; // you think it's negative when it's negative
+                        labIsRight = true; // you think it's negative when it's negative
                         publishingEffect = false; // you publish negative
                     }
                 }

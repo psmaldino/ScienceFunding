@@ -2,6 +2,7 @@ import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.grid.DoubleGrid2D;
 import sim.field.grid.IntGrid2D;
+import sim.util.Bag;
 import sim.util.IntBag;
 
 public class Globals implements Steppable { // Global agent that updates the stats
@@ -15,14 +16,13 @@ public class Globals implements Steppable { // Global agent that updates the sta
 
     public void step(SimState state){
         updateGlobals();
-
-
     }
 
     private void updateGlobals(){
         // TODO very rudimentary globals. Have to define them later. //
 
         // false discovery //
+
         falseDiscoveryRate = 0;
         for(int i = 0; i < falseDiscoveries.size(); i++){
             falseDiscoveryRate += falseDiscoveries.get(i);
