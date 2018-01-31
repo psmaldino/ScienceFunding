@@ -6,12 +6,12 @@ import sim.util.Bag;
 import sim.util.IntBag;
 
 public class Globals implements Steppable { // Global agent that updates the stats
-    static IntBag falseDiscoveries;
+    static double falseDiscoveries = 0;
+    static double numberOfPublications = 0;
     static double falseDiscoveryRate;
     static double rateOfDiscovery;
 
     public Globals(){
-        this.falseDiscoveries = new IntBag();
     }
 
     public void step(SimState state){
@@ -23,11 +23,7 @@ public class Globals implements Steppable { // Global agent that updates the sta
 
         // false discovery //
 
-        falseDiscoveryRate = 0;
-        for(int i = 0; i < falseDiscoveries.size(); i++){
-            falseDiscoveryRate += falseDiscoveries.get(i);
-        }
-        falseDiscoveryRate = falseDiscoveryRate / falseDiscoveries.size(); // what's the rate of published articles that are false discoveries?
+        falseDiscoveryRate = falseDiscoveries / numberOfPublications; // what's the rate of published articles that are false discoveries?
 
         // landscape discovery rate //
 

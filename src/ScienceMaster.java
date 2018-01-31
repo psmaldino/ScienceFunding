@@ -49,14 +49,14 @@ public class ScienceMaster implements Steppable { // It who determines the life 
             }
         }
 
-        Lab reproducedLab = (Lab) ticketBag.get(state.random.nextInt(ticketBag.size())); // grab a random one from the ticket bag. more postdocs, more chances.
+        if(ticketBag.size() > 0){ // only reproduce labs if there is at least one postdoc
+            Lab reproducedLab = (Lab) ticketBag.get(state.random.nextInt(ticketBag.size())); // grab a random one from the ticket bag. more postdocs, more chances.
 
-        ScienceFunding.latestId++; // update id for new lab
-        Lab newLab = new Lab(ScienceFunding.latestId, reproducedLab.topicX, reproducedLab.topicY); // create new lab before mutation
+            ScienceFunding.latestId++; // update id for new lab
+            Lab newLab = new Lab(ScienceFunding.latestId, reproducedLab.topicX, reproducedLab.topicY); // create new lab before mutation
 
-        // topic mutation //
+            // topic mutation //
 
-        do {
             int Xvariation = state.random.nextInt(2); // move 2 steps max
             int Yvariation = state.random.nextInt(2); // move 2 steps max
             if (state.random.nextBoolean()) { // positive or negative?
@@ -67,34 +67,38 @@ public class ScienceMaster implements Steppable { // It who determines the life 
             }
             newLab.topicX = newLab.topicX + Xvariation;
             newLab.topicY = newLab.topicY + Yvariation;
-        } while((newLab.topicX >= 200 || newLab.topicX < 0) || (newLab.topicY >= 200 || newLab.topicY < 0)); // cap both at 0 - 199.
+            if(newLab.topicX >= 200){newLab.topicX = 199;}
+            if(newLab.topicX < 0){newLab.topicX = 0;}
+            if(newLab.topicY >= 200){newLab.topicY = 199;}
+            if(newLab.topicY <0){newLab.topicY = 0;}
 
-        // methodology mutation //
+            // methodology mutation //
 
-        newLab.effort = reproducedLab.effort; // copy methodology.
+            newLab.effort = reproducedLab.effort; // copy methodology.
 
-        if(state.random.nextDouble() < ScienceFunding.probabilityOfMutationEffort) { // roll for mutation
-            do {double effortMutation = state.random.nextGaussian(); // draw from a gaussian with stand dev of 1. cap final value at 1 - 100.
-            reproducedLab.effort += effortMutation;}
-            while(reproducedLab.effort > 100 || reproducedLab.effort < 1);
+            if(state.random.nextDouble() < ScienceFunding.probabilityOfMutationEffort) { // roll for mutation
+                double effortMutation = state.random.nextGaussian(); // draw from a gaussian with stand dev of 1. cap final value at 1 - 100.
+                reproducedLab.effort += effortMutation;
+                if(reproducedLab.effort > 100){reproducedLab.effort = 100;}
+                if(reproducedLab.effort < 1){reproducedLab.effort = 1;}
+            }
 
-        }
+            // applying to funding mutation //
 
-        // applying to funding mutation //
-
-        if(ScienceFunding.mutateFunding && state.random.nextDouble() < ScienceFunding.probabilityOfMutationFunding){ // depends on global parameter
-            do{
+            if(ScienceFunding.mutateFunding && state.random.nextDouble() < ScienceFunding.probabilityOfMutationFunding){ // depends on global parameter
                 double mutation = state.random.nextGaussian() * 0.001; // 1% of variability
                 reproducedLab.probabilityOfApplying += mutation;
-            } while(reproducedLab.probabilityOfApplying < 0.0001 || reproducedLab.probabilityOfApplying > 1); // cap at 0.0001 - 1.
+                if(reproducedLab.probabilityOfApplying < 0.0001){reproducedLab.probabilityOfApplying = 0.0001;}
+                if(reproducedLab.probabilityOfApplying > 1){reproducedLab.probabilityOfApplying = 1;}
+            }
+
+            // kill old lab and add new lab //
+
+            ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
+            ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
+            newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // add new lab to schedule and allocate stoppable to kill in the future
+            spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // add new lab to epistemic landscape
         }
-
-        // kill old lab and add new lab //
-
-        ScienceFunding.allLabs.remove(dyingLab); // remove old lab from list of all labs
-        ScienceFunding.allLabs.add(newLab); // add new lab to list of all labs
-        newLab.stoppable = state.schedule.scheduleRepeating(newLab,0, 1); // add new lab to schedule and allocate stoppable to kill in the future
-        spaceLabs.setObjectLocation(newLab, newLab.topicX, newLab.topicY); // add new lab to epistemic landscape
     }
 
     private void updateHighest(){ // look through bag for the highest one

@@ -46,11 +46,9 @@ public class Lab implements Steppable {
     }
 
     private void updateTopic(SimState state, SparseGrid2D landscape){
-
         Double2D newLocation = LevyWalk.getNewLocation(new Double2D(this.topicX, this.topicY), state); // levy walk to somewhere else
         this.topicX = (int) newLocation.x; // set your location to the new location
         this.topicY = (int) newLocation.y;
-
         landscape.setObjectLocation(this, this.topicX, this.topicY);
     }
 
@@ -99,11 +97,15 @@ public class Lab implements Steppable {
                 }
 
                 if (publishingEffect) { // if it's publishing a positive result
+                    Globals.numberOfPublications++; // add one to publication counter
+
                     int currentPublicationsTopic = publications.get(this.topicX, this.topicY); // how many publications are there in this topic?
                     publications.set(this.topicX, this.topicY, currentPublicationsTopic + 1); // add a publication to this topic
                     LandscapeUtils.increaseAndDisperse(landscape, this.topicX, this.topicY, 0.001); // increase by 0.001 every time you publish
 
-                    if(labIsRight){Globals.falseDiscoveries.add(0);} else {Globals.falseDiscoveries.add(1);} // if you're publishing a false discovery, add 1 to globals. else, add 0.
+                    if(!labIsRight){
+                        Globals.falseDiscoveries++;
+                    } // if you're publishing a false discovery, add 1 to globals tracker
 
                     if (replication) { // if it's a replication'
                         this.clout += 0.5; // add 0.5 to your publication payoff
@@ -113,7 +115,10 @@ public class Lab implements Steppable {
 
                 }
                 if (!publishingEffect && (state.random.nextInt(100) < ScienceFunding.probabilityOfPublishingNegative)) { // if you're publishing negative, roll for negative publication. if you get it, publish.
-                    if(labIsRight){Globals.falseDiscoveries.add(0);} else {Globals.falseDiscoveries.add(1);} // if you're publishing a false discovery, add 1 to globals. else, add 0.
+                    Globals.numberOfPublications++;
+                    if(!labIsRight){
+                        Globals.falseDiscoveries++;
+                    } // if you're publishing a false discovery, add 1 to globals.
                     int currentPublicationsTopic = publications.get(this.topicX, this.topicY); // how many publications are there in this topic?
                     publications.set(this.topicX, this.topicY, currentPublicationsTopic + 1); // add a publication to this topic
                     LandscapeUtils.increaseAndDisperse(landscape, this.topicX, this.topicY, 0.001); // increase by 0.001 every time you publish

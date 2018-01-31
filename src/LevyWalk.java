@@ -82,42 +82,38 @@ public class LevyWalk {
 
 	static Double2D getNewLocation(Double2D currentLocation, SimState state){
 	    int direction = state.random.nextInt(8); // get a random direction. 0 : up, 1: top-right, clockwise until 7: top-left.
-
         int oldX = (int) currentLocation.x;
         int oldY = (int) currentLocation.y;
 
         int newX = oldX;
         int newY = oldY;
-        int stepLength = getLength(state);
-
 
         if(direction == 0 || direction == 1 || direction == 7){ // cases where it moves upwards
-            do{
-                newY = oldY + stepLength;
-            } while(newY >= 200); // capped at 200
+            int stepLength = getLength(state);
+            newY = oldY + stepLength;
+            if(newY >= 200){newY = 199;} // capped at 200
 
         }
 
         if(direction == 3 || direction == 4 || direction == 5){ // cases where it moves downwards
-            do{
-                newY = oldY - stepLength;
-            } while(newY < 0); // capped at 0
+            int stepLength = getLength(state);
+            newY = oldY - stepLength;
+            if(newY < 0){newY = 0;}
         }
 
         if(direction == 1 || direction == 2 || direction == 3){ // cases where you move right
-            do {
-                newX = oldX + stepLength;
-            } while(newX >= 200);
+            int stepLength = getLength(state);
+            newX = oldX + stepLength;
+            if(newX >= 200){newX = 199;}
         }
 
         if(direction == 5 || direction == 6 || direction == 7){ // cases where you move left
-            do {
-                newX = oldX - stepLength;
-            } while(newX < 0);
+            int stepLength = getLength(state);
+            newX = oldX - stepLength;
+            if(newX < 0){newX = 0;}
         }
 
-        Double2D newLocation = new Double2D(newX, newY);
-		return newLocation;
+        return new Double2D(newX, newY);
 	}
 
 }
