@@ -5,7 +5,7 @@ import sim.field.grid.IntGrid2D;
 
 import java.util.Arrays;
 
-public class Globals implements Steppable { // Global agent that updates the stats
+class Globals implements Steppable { // Global agent that updates the stats
     static double falseDiscoveries = 0;
     static double numberOfPublications = 0;
     static double falseDiscoveryRate;

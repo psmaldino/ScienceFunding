@@ -2,7 +2,7 @@ import sim.field.grid.DoubleGrid2D;
 import sim.util.*;
 import static java.lang.Math.pow;
 
-public class LandscapeUtils {
+class LandscapeUtils {
     // implements static methods to manipulate the landscape //
 
     static void increaseAndDisperse(DoubleGrid2D landscape, int originalCellX, int originalCellY, double amount){ // includes dispersal. takes cell, adds amount, and then adds dispersing amount to neighboring cells until it completely disperses (increase <= 0.001
@@ -19,7 +19,7 @@ public class LandscapeUtils {
         // recursive function. takes the landscape, the cell originally changed and the cell to change along with a Bag to avoid stack overflow and the original amount changed.
         // it loops through the neighbors of a cell and makes them change their value according to the distance to the original cell.
         // each of those neighbors calls the same function on their neighbors, until the value is equal to 0.001 (min value).
-        // after the function is called on some value, it is added to the bag "previouschanges". the function is only called on cells not previously changed. this avoids infinite recursion.
+        // after the function is called on some value, it is added to the bag "previousChanges". the function is only called on cells not previously changed. this avoids infinite recursion.
 
         IntBag neighborsX = new IntBag(); // allocate the bags needed by getMooreNeighbors
         IntBag neighborsY = new IntBag();

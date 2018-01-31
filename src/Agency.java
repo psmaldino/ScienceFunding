@@ -1,14 +1,13 @@
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Bag;
-import sim.util.DoubleBag;
 
 import java.util.Comparator;
 
-public class Agency implements Steppable {
+class Agency implements Steppable {
     static Bag thisTurnsApplicants; // renewable bag to store everyone applying for funds. labs insert themselves into the bags during their steps.
-    public int budget = 5; // budget available measured in big grants. 1 big grant (5 years) = 4 small grants (1 year)
-    public double proportionOfBigGrants = 0.5; // proportion of total grants awarded to big grants.
+    public final int budget = 5; // budget available measured in big grants. 1 big grant (5 years) = 4 small grants (1 year)
+    public final double proportionOfBigGrants = 0.5; // proportion of total grants awarded to big grants.
     public double evaluationError = 0.001; // standard deviation of error in utility.
 
     public Agency(){
@@ -36,7 +35,7 @@ public class Agency implements Steppable {
                 Lab bestLab = (Lab) thisTurnsApplicants.pop(); // get lab with highest utility
                 bestLab.grants.add(5); // add a postdoc for 5 years
             } else { // 4 small grants are given. 4 labs get 1 year of funding
-                for(int n = 0; n < 4; i++) {
+                for(int n = 0; n < 4; n++) {
                     if(thisTurnsApplicants.size() == 0){ // fail safe for if there are fewer applicants than there are grants
                         break;
                     }

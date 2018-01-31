@@ -3,9 +3,7 @@ import sim.field.grid.SparseGrid2D;
 import sim.util.*;
 import java.util.Comparator;
 
-import java.util.Comparator;
-
-public class ScienceMaster implements Steppable { // It who determines the life and death of science labs
+class ScienceMaster implements Steppable { // It who determines the life and death of science labs
     static double highestPublication; // the highest publication record measured for t-1.
 
     public void step(SimState state){
@@ -44,7 +42,7 @@ public class ScienceMaster implements Steppable { // It who determines the life 
             if(numberOfPostdocs == 0){
                 continue;
             }
-            for(int n = 0; n < numberOfPostdocs; n++){ // for each postdoc, add the lab to the ticketbag. if it's 0, then don't add anything
+            for(int n = 0; n < numberOfPostdocs; n++){ // for each postdoc, add the lab to the ticketBag. if it's 0, then don't add anything
                 ticketBag.add(thisLab);
             }
         }
@@ -57,16 +55,16 @@ public class ScienceMaster implements Steppable { // It who determines the life 
 
             // topic mutation //
 
-            int Xvariation = state.random.nextInt(2); // move 2 steps max
-            int Yvariation = state.random.nextInt(2); // move 2 steps max
+            int xVariation = state.random.nextInt(2); // move 2 steps max
+            int yVariation = state.random.nextInt(2); // move 2 steps max
             if (state.random.nextBoolean()) { // positive or negative?
-                Xvariation = Xvariation * -1;
+                xVariation *= -1;
             }
             if (state.random.nextBoolean()) { // positive or negative?
-                Yvariation = Yvariation * -1;
+                yVariation *= -1;
             }
-            newLab.topicX = newLab.topicX + Xvariation;
-            newLab.topicY = newLab.topicY + Yvariation;
+            newLab.topicX += xVariation;
+            newLab.topicY += yVariation;
             if(newLab.topicX >= 200){newLab.topicX = 199;}
             if(newLab.topicX < 0){newLab.topicX = 0;}
             if(newLab.topicY >= 200){newLab.topicY = 199;}
@@ -86,8 +84,7 @@ public class ScienceMaster implements Steppable { // It who determines the life 
             // applying to funding mutation //
 
             if(ScienceFunding.mutateFunding && state.random.nextDouble() < ScienceFunding.probabilityOfMutationFunding){ // depends on global parameter
-                double mutation = state.random.nextGaussian() * 0.001; // 1% of variability
-                reproducedLab.probabilityOfApplying += mutation;
+                reproducedLab.probabilityOfApplying += state.random.nextGaussian() * 0.001; // 1% of variability;
                 if(reproducedLab.probabilityOfApplying < 0.0001){reproducedLab.probabilityOfApplying = 0.0001;}
                 if(reproducedLab.probabilityOfApplying > 1){reproducedLab.probabilityOfApplying = 1;}
             }

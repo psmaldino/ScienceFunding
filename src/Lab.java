@@ -1,4 +1,3 @@
-import sim.engine.Steppable;
 import sim.field.grid.DoubleGrid2D;
 import sim.field.grid.IntGrid2D;
 import sim.field.grid.SparseGrid2D;
@@ -7,9 +6,9 @@ import sim.util.IntBag;
 import sim.engine.*;
 
 
-public class Lab implements Steppable {
+class Lab implements Steppable {
 
-    private int labId; // tracks the unique identity of a specific lab
+    private final int labId; // tracks the unique identity of a specific lab
     int topicX; // location
     int topicY; //
     int numberOfPostdocs; // how many postdocs does this have at the beginning of the cycle?

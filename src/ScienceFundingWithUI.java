@@ -4,7 +4,6 @@ import sim.portrayal.DrawInfo2D;
 import sim.portrayal.Inspector;
 import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.grid.ValueGridPortrayal2D;
-import sim.portrayal.simple.LabelledPortrayal2D;
 import sim.portrayal.simple.OvalPortrayal2D;
 import sim.util.gui.SimpleColorMap;
 
@@ -15,8 +14,8 @@ public class ScienceFundingWithUI extends GUIState {
 
     public Display2D display;
     public JFrame displayFrame;
-    ValueGridPortrayal2D landscapePortrayal = new ValueGridPortrayal2D();
-    SparseGridPortrayal2D labsPortrayal = new SparseGridPortrayal2D();
+    final ValueGridPortrayal2D landscapePortrayal = new ValueGridPortrayal2D();
+    final SparseGridPortrayal2D labsPortrayal = new SparseGridPortrayal2D();
 
     public static void main(String[] args) {
         ScienceFundingWithUI vid = new ScienceFundingWithUI();
@@ -58,13 +57,13 @@ public class ScienceFundingWithUI extends GUIState {
     public void setupPortrayals(){
         ScienceFunding scienceFunding = (ScienceFunding) state;
 
-        landscapePortrayal.setField(scienceFunding.landscape);
-        labsPortrayal.setField(scienceFunding.labs);
+        landscapePortrayal.setField(ScienceFunding.landscape);
+        labsPortrayal.setField(ScienceFunding.labs);
         labsPortrayal.setPortrayalForAll(new OvalPortrayal2D(){
             public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
                 Lab lab = (Lab) object;
 
-                int fundingShade = (int) ((lab.getNumberOfPostdocs() * 10) + 50);
+                int fundingShade = lab.getNumberOfPostdocs() * 10 + 50;
                 if (fundingShade > 255) {
                     fundingShade = 255;
                 }

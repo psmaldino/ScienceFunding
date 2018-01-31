@@ -1,34 +1,33 @@
 import sim.engine.*;
-import sim.field.grid.DoubleGrid2D;
 import sim.field.grid.*;
 import sim.util.*;
 
 public class ScienceFunding extends SimState {
-    static double powerLevel = 0.8; // W in the document. the statistical power.
-    static int sizeOfLandscape = 200; // width and height of square landscape.
-    private int numberOfLabs = 100; // how many labs?
-    private int numberOfEstablishedTopics = 5; //
+    static final double powerLevel = 0.8; // W in the document. the statistical power.
+    static final int sizeOfLandscape = 200; // width and height of square landscape.
+    private final int numberOfLabs = 100; // how many labs?
+    private final int numberOfEstablishedTopics = 5; //
     static Bag allLabs; // just in case, bag with all labs
     static int latestId; // track labs to assign ids
-    static double effortConstant = 0.2; // constant that determines how much effort reduces research output;
-    static double probabilityOfReplication = 0.3; // how often will research be a publication? in %
-    static int probabilityOfPublishingNegative = 25; // how often journals publish negative results
+    static final double effortConstant = 0.2; // constant that determines how much effort reduces research output;
+    static final double probabilityOfReplication = 0.3; // how often will research be a publication? in %
+    static final int probabilityOfPublishingNegative = 25; // how often journals publish negative results
 
-    static double costOfApplication = 0.2; // how much you are affected by applying to a grant.
+    static final double costOfApplication = 0.2; // how much you are affected by applying to a grant.
 
-    static double weightOfInnovation = 0.5; // -1 to 1
-    static double weightOfRecord = 0.5; // 0 to 1. this + weight of innovation must sum more than 0
+    static final double weightOfInnovation = 0.5; // -1 to 1
+    static final double weightOfRecord = 0.5; // 0 to 1. this + weight of innovation must sum more than 0
 
     // mutation parameters //
 
-    static double probabilityOfMutationEffort = 0.01;
-    static boolean mutateFunding = false; // does the probability of applying for funding evolve?
-    static double probabilityOfMutationFunding = 0.01;
+    static final double probabilityOfMutationEffort = 0.01;
+    static final boolean mutateFunding = false; // does the probability of applying for funding evolve?
+    static final double probabilityOfMutationFunding = 0.01;
 
 
-    static DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape, 0.001); // initialize underlying landscape
-    static SparseGrid2D labs = new SparseGrid2D(sizeOfLandscape, sizeOfLandscape); // initialize movement of labs
-    static IntGrid2D publications = new IntGrid2D(sizeOfLandscape, sizeOfLandscape, 0); // initialize grid of number of publications
+    static final DoubleGrid2D landscape = new DoubleGrid2D(sizeOfLandscape, sizeOfLandscape, 0.001); // initialize underlying landscape
+    static final SparseGrid2D labs = new SparseGrid2D(sizeOfLandscape, sizeOfLandscape); // initialize movement of labs
+    static final IntGrid2D publications = new IntGrid2D(sizeOfLandscape, sizeOfLandscape, 0); // initialize grid of number of publications
 
     ScienceFunding(long seed){
         super(seed);

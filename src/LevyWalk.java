@@ -10,14 +10,15 @@ import sim.util.*;
  *
  */
 
-public class LevyWalk {
-	static int maxLength = 10; //longest walk permitted
+class LevyWalk {
+	static final int maxLength = 10; //longest walk permitted
 	static double[] lengthProbabilities; //A vector of the probabilities for each length of walk in a given
 								  //direction. It is a summation vector so that random.nextDouble()
 								  //can be used to fined a random length.
-	static double u = 2.5; // Exponent for the probability equation above. Assumed positive.
+	static final double u = 2.5; // Exponent for the probability equation above. Assumed positive.
 	
-	static void calculateSumProbVector(){
+	@SuppressWarnings("ManualArrayCopy")
+    static void calculateSumProbVector(){
 		lengthProbabilities = new double[maxLength];
 		double total = 0;
 		for(int i=0; i<maxLength;i++){
@@ -42,12 +43,12 @@ public class LevyWalk {
 		for(int i=1; i<maxLength;i++){
 			working[i]=lengthProbabilities[i]+working[i-1];
 		}
-		
+
+
 		for(int i=0; i<maxLength;i++){
 			lengthProbabilities[i]=working[i]; //reload the summed normalized vector
 		}
 		lengthProbabilities[maxLength-1]=1; //make sure there are no rounding errors
-		return;
 	}
 	
 	static void initialize(){
@@ -58,11 +59,9 @@ public class LevyWalk {
 	 * This method returns a random walk length.  It can be used in two ways.  It can be interpreted
 	 * as the number of steps an agent takes in a given direction or, if the walk occurs in one step,
 	 * it is the distance moved in a given direction.  The former interpretation is best for most
-	 * agent-based simulations.  Note also that this can be used in conjunction with OneStepRaondomWalk
+	 * agent-based simulations.  Note also that this can be used in conjunction with OneStepRandomWalk
 	 * so that one is not stuck with only Brownian motion random walks.  Thus, there can be, for
 	 * example, zigzag Levy walks.
-	 * @param state
-	 * @return
 	 */
 
 	static int getLength(SimState state){
@@ -73,7 +72,7 @@ public class LevyWalk {
 				return i+1; //the length of the walk;
 			}
 		}
-		System.err.println("Error in getLenth: maxLength returned.");
+		System.err.println("Error in getLength: maxLength returned.");
 		return maxLength;
 	}
 
