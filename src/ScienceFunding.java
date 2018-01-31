@@ -6,8 +6,8 @@ import sim.util.*;
 public class ScienceFunding extends SimState {
     static double powerLevel = 0.8; // W in the document. the statistical power.
     static int sizeOfLandscape = 200; // width and height of square landscape.
-    public int numberOfLabs = 100; // how many labs?
-    public int numberOfEstablishedTopics = 5; //
+    private int numberOfLabs = 100; // how many labs?
+    private int numberOfEstablishedTopics = 5; //
     static Bag allLabs; // just in case, bag with all labs
     static int latestId; // track labs to assign ids
     static double effortConstant = 0.2; // constant that determines how much effort reduces research output;
@@ -30,7 +30,7 @@ public class ScienceFunding extends SimState {
     static SparseGrid2D labs = new SparseGrid2D(sizeOfLandscape, sizeOfLandscape); // initialize movement of labs
     static IntGrid2D publications = new IntGrid2D(sizeOfLandscape, sizeOfLandscape, 0); // initialize grid of number of publications
 
-    public ScienceFunding(long seed){
+    ScienceFunding(long seed){
         super(seed);
     }
 
@@ -108,5 +108,77 @@ public class ScienceFunding extends SimState {
 
     public double getRateOfDiscoveries(){
         return Globals.rateOfDiscovery;
+    }
+
+    public double getDiscoveredMean() {
+        return Globals.discoveredMean;
+    }
+
+    public double[] getDiscoveredDistribution(){
+        return Globals.discoveredDistribution;
+    }
+
+    public double getDiscoveredStandardDev(){
+        return Globals.discoveredStandardDev;
+    }
+
+    public double getPublicationMean(){
+        return Globals.publicationMean;
+    }
+
+    public int[] getPublicationDistribution(){
+        return Globals.publicationDistribution;
+    }
+
+    public double getPublicationStandardDev(){
+        return Globals.publicationStandardDev;
+    }
+
+    public double getFundsMean(){
+        return Globals.fundsMean;
+    }
+
+    public double getFundStandardDev(){
+        return Globals.fundStandardDev;
+    }
+
+    public double[] getFundsDistribution(){
+        return Globals.fundsDistribution;
+    }
+
+    public double getFundsGini(){
+        return Globals.fundsGini;
+    }
+
+    public double getPostdocNumberMean(){
+        return Globals.postdocNumberMean;
+    }
+
+    public double[] getPostdocNumberDistribution(){
+        return Globals.postdocNumberDistribution;
+    }
+
+    public double getPostdocNumberGini(){
+        return Globals.postdocNumberGini;
+    }
+
+    public double getPostdocNumberStandardDev(){
+        return Globals.postdocNumberStandardDev;
+    }
+
+    public double getPostdocDurationMean(){
+        return Globals.postdocDurationMean;
+    }
+
+    public double[] getPostdocDurationDistribution(){
+        return Globals.postdocDurationDistribution;
+    }
+
+    public double getPostdocDurationStandardDev(){
+        return Globals.postdocDurationStandardDev;
+    }
+
+    public double getPostdocDurationGini(){
+        return Globals.postdocDurationGini;
     }
 }
