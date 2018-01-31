@@ -91,6 +91,8 @@ public class ScienceFunding extends SimState {
 
         Globals theGlobals = new Globals();
         schedule.scheduleRepeating(theGlobals, 3, 1); // schedule the global updater after everything else. updates every X.
+
+        LevyWalk.initialize(); // initialize
     }
 
     public static void main(String[] args){

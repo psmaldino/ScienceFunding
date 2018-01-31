@@ -46,21 +46,11 @@ public class Lab implements Steppable {
     }
 
     private void updateTopic(SimState state, SparseGrid2D landscape){
-        // TODO CHANGE FOR LEVY FLIGHT //
-        if(state.random.nextInt(100) >= 50) { // 10% chance
-            do {
-                int Xvariation = state.random.nextInt(2); // move 2 steps max
-                int Yvariation = state.random.nextInt(2); // move 2 steps max
-                if (state.random.nextBoolean()) { // positive or negative?
-                    Xvariation = Xvariation * -1;
-                }
-                if (state.random.nextBoolean()) { // positive or negative?
-                    Yvariation = Yvariation * -1;
-                }
-                this.topicX = this.topicX + Xvariation;
-                this.topicY = this.topicY + Yvariation;
-            } while((this.topicX >= 200 || this.topicX < 0) || (this.topicY >= 200 || this.topicY < 0)); // cap both at 0 - 199.
-        }
+
+        Double2D newLocation = LevyWalk.getNewLocation(new Double2D(this.topicX, this.topicY), state); // levy walk to somewhere else
+        this.topicX = (int) newLocation.x; // set your location to the new location
+        this.topicY = (int) newLocation.y;
+
         landscape.setObjectLocation(this, this.topicX, this.topicY);
     }
 
