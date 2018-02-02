@@ -1,18 +1,18 @@
 import sim.field.grid.DoubleGrid2D;
 import sim.util.*;
+
 import static java.lang.Math.pow;
 
 class LandscapeUtils {
     // implements static methods to manipulate the landscape //
 
-    static void increaseAndDisperse(DoubleGrid2D landscape, int originalCellX, int originalCellY, double amount){ // includes dispersal. takes cell, adds amount, and then adds dispersing amount to neighboring cells until it completely disperses (increase <= 0.001
+    static void increaseAndDisperse(DoubleGrid2D landscape, int originalCellX, int originalCellY, double amount) { // includes dispersal. takes cell, adds amount, and then adds dispersing amount to neighboring cells until it completely disperses (increase <= 0.001
         Double originalValue = landscape.get(originalCellX, originalCellY);
         Double2D originalCell = new Double2D(originalCellX, originalCellY);
         landscape.set(originalCellX, originalCellY, (originalValue + amount));
         Bag previousChanges = new Bag();
         previousChanges.add(originalCell);
         changeNeighbors(landscape, originalCell, originalCell, amount, previousChanges);
-
     }
 
     static void changeNeighbors(DoubleGrid2D landscape, Double2D originalCell, Double2D thisCell, double originalAmount, Bag previousChanges) {
@@ -41,7 +41,7 @@ class LandscapeUtils {
                 previousChanges.add(thisNeighbor); // add the cell to the previously changed cells to avoid infinite recursion
                 changeNeighbors(landscape, originalCell, thisNeighbor, originalAmount, previousChanges); // recursively call function
             } else { // if it didn't change because change was over precision level
-                landscape.set(neighborsX.get(i), neighborsY.get(i), thisNeighborValue); // set the same value;
+                landscape.set(neighborsX.get(i), neighborsY.get(i), thisNeighborValue); // set the same value
             }
         }
     }
@@ -51,13 +51,15 @@ class LandscapeUtils {
         double oldValue = landscape.get((int) thisCell.x, (int) thisCell.y);
         double eucDistance = originalCell.distance(thisCell); //euclidean distance
         double newValue = pow(originalAmount, eucDistance); // original amount to the power of the euclidean distance
-        if(newValue >= 0.00000001){ // maximum precision to avoid recursion
+        if (newValue >= 0.00000001) { // maximum precision to avoid recursion
             newValue += oldValue;
         } else {
             newValue = oldValue;
         }
-        if(newValue >= 0.5){
+        if (newValue >= 0.5) {
             return 0.5;
-        } else{return newValue;}
+        } else {
+            return newValue;
+        }
     }
 }

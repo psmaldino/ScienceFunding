@@ -1,7 +1,5 @@
 import sim.engine.SimState;
 import sim.engine.Steppable;
-import sim.field.grid.DoubleGrid2D;
-import sim.field.grid.IntGrid2D;
 
 import java.util.Arrays;
 
@@ -29,45 +27,26 @@ class Globals implements Steppable { // Global agent that updates the stats
     static double postdocDurationStandardDev;
     static double postdocDurationGini;
 
-    public void step(SimState state){
+    public void step(SimState state) {
         updateGlobals();
     }
 
-    private void updateGlobals(){
-        // false discovery //
+    private void updateGlobals() {
+        // false discovery rate //
 
         falseDiscoveryRate = falseDiscoveries / numberOfPublications; // what's the rate of published articles that are false discoveries?
 
+        // landscape discovery mean, sdev //
 
-        // landscape discovery metrics //
-
-        DoubleGrid2D theLandscape = ScienceFunding.landscape;
-        double[] landscapeArray = theLandscape.toArray();
-
+        double[] landscapeArray = ScienceFunding.landscape.toArray();
         discoveredDistribution = landscapeArray;
-            // mean //
-        discoveredMean = 0;
-        for (double aLandscapeArray1 : landscapeArray) {
-            discoveredMean += aLandscapeArray1;
-        }
-        discoveredMean = discoveredMean / landscapeArray.length;
-            // standard dev //
-        double sumOfSquaredDevs = 0;
-
-        for (double aLandscapeArray : landscapeArray) {
-            double squaredDev = aLandscapeArray - discoveredMean;
-            squaredDev *= squaredDev;
-            sumOfSquaredDevs += squaredDev;
-        }
-        sumOfSquaredDevs /= landscapeArray.length;
-
-        discoveredStandardDev =  Math.sqrt(sumOfSquaredDevs);
+        discoveredMean = calculateMean(landscapeArray);
+        discoveredStandardDev = calculateStandardDev(landscapeArray, discoveredMean);
 
         // publication metrics //
+        // topic publication rate //
 
-            // topic publication rate //
-        IntGrid2D thePubs = ScienceFunding.publications;
-        int[] pubsArray = thePubs.toArray();
+        int[] pubsArray = ScienceFunding.publications.toArray();
         publicationDistribution = pubsArray;
         int exploredTopics = 0; // number of topics with more than 0 publications
         for (int aPubsArray1 : pubsArray) {
@@ -75,36 +54,26 @@ class Globals implements Steppable { // Global agent that updates the stats
                 exploredTopics++;
             }
         }
-        rateOfDiscovery = (double) exploredTopics / pubsArray.length; // rate of discovery: percentage of topics with more than publications.
+        rateOfDiscovery = (double) exploredTopics / pubsArray.length; // rate of discovery: proportion of topics with more than publications.
 
-            // mean //
-        publicationMean = 0;
-        for (int aPubsArray : pubsArray) {
-            publicationMean += aPubsArray;
-        }
-        publicationMean /= pubsArray.length;
+        // mean and s //
 
-            // standard dev //
-        sumOfSquaredDevs = 0;
-        for (int aPubsArray : pubsArray) {
-            double squaredDev = aPubsArray - publicationMean;
-            squaredDev *= squaredDev;
-            sumOfSquaredDevs += squaredDev;
-        }
-        sumOfSquaredDevs /= pubsArray.length;
-        publicationStandardDev = Math.sqrt(sumOfSquaredDevs);
+        publicationMean = calculateMean(pubsArray);
+        publicationStandardDev = calculateStandardDev(pubsArray, publicationMean);
 
         // funds metrics //
+
         double[] fundsArray = new double[ScienceFunding.allLabs.size()]; // array of total number of years of funding a lab has
         double[] postdocNumberArray = new double[ScienceFunding.allLabs.size()]; // array of number of postdocs lab have
         double[] postdocDurationArray = new double[ScienceFunding.allLabs.size()]; // array of the number of years a lab will have at least one postdoc.
-        for(int i = 0; i < ScienceFunding.allLabs.size(); i++){
+
+        for (int i = 0; i < ScienceFunding.allLabs.size(); i++) { // populate the arrays
             Lab aLab = (Lab) ScienceFunding.allLabs.get(i);
             double labTotalFunds = 0;
             int maxGrantSoFar = 0;
-            for(int n = 0; n < aLab.grants.size(); n++){
+            for (int n = 0; n < aLab.grants.size(); n++) {
                 labTotalFunds += aLab.grants.get(n);
-                if(aLab.grants.get(n) > maxGrantSoFar){
+                if (aLab.grants.get(n) > maxGrantSoFar) {
                     maxGrantSoFar = aLab.grants.get(n);
                 }
             }
@@ -113,97 +82,89 @@ class Globals implements Steppable { // Global agent that updates the stats
             postdocDurationArray[i] = maxGrantSoFar;
 
         }
-            // mean and gini coefficient prep for funds //
+
+        // mean, gini, sdev //
 
         fundsDistribution = fundsArray;
-        fundsMean = 0;
-        Arrays.sort(fundsArray); // sort array in ascending order
-        double giniNumerator = 0; // 2 * sum of i * Yi, i = 1, n = 100;
-        double giniDenominator = 0; // n * sum of Yi, i = 1, n = 100;
-        for(int i = 0; i < fundsArray.length;i++){
-            fundsMean += fundsArray[i];
-            giniNumerator += (i + 1) * fundsArray[i];
-            giniDenominator += fundsArray[i];
-        }
-        fundsMean /= fundsArray.length; // mean number of years of funding for labs
-        giniNumerator *= 2;
-        giniDenominator *= fundsArray.length;
-
-        sumOfSquaredDevs = 0;
-        for (double aFundsArray : fundsArray) {
-            double squaredDev = aFundsArray - fundsMean;
-            squaredDev *= squaredDev;
-            sumOfSquaredDevs += squaredDev;
-        }
-        sumOfSquaredDevs /= fundsArray.length;
-        fundStandardDev = Math.sqrt(sumOfSquaredDevs);
-
-            // gini coefficient //
-
-        double giniLeftHand = giniNumerator / giniDenominator; // left hand of gini equation.
-        fundsGini = giniLeftHand - ((fundsArray.length + 1) / fundsArray.length); // right hand of gini equation (1 + n) / n
+        double[] fundsResults = meanAndGini(fundsArray);
+        fundsMean = fundsResults[0];
+        fundsGini = fundsResults[1];
+        fundStandardDev = calculateStandardDev(fundsArray, fundsMean);
 
         // postdoc metrics //
 
-        postdocNumberDistribution = postdocNumberArray;
+        postdocNumberDistribution = postdocNumberArray; // distributions populate
         postdocDurationDistribution = postdocDurationArray;
 
-            // mean and gini of number //
+        // number of postdocs mean, gini, sdev //
 
-        giniNumerator = 0;
-        giniDenominator = 0;
-        postdocNumberMean = 0;
-        Arrays.sort(postdocNumberArray);
-        for(int i = 0; i < postdocNumberArray.length; i++){
-            postdocNumberMean += postdocNumberArray[i];
-            giniNumerator += postdocNumberArray[i] * (i + 1);
-            giniDenominator += postdocNumberArray[i];
+        double[] postdocNumberResults = meanAndGini(postdocNumberArray);
+        postdocNumberMean = postdocNumberResults[0];
+        postdocNumberGini = postdocNumberResults[1];
+        postdocNumberStandardDev = calculateStandardDev(postdocNumberArray, postdocNumberMean);
+
+        // number of years you will have at least 1 postdoc mean, gini, sdev//
+
+        double[] postdocDurationResults = meanAndGini(postdocDurationArray);
+        postdocDurationMean = postdocDurationResults[0];
+        postdocDurationGini = postdocDurationResults[1];
+        postdocDurationStandardDev = calculateStandardDev(postdocDurationArray, postdocDurationMean);
+    }
+
+    private double calculateMean(double[] array) {
+        double mean = 0;
+        for (double aDouble : array) {
+            mean += aDouble;
         }
-        postdocNumberMean /= postdocNumberArray.length;
+        return mean / array.length;
+    }
+
+    private double calculateMean(int[] array) {
+        double mean = 0;
+        for (int anInt : array) {
+            mean += (double) anInt;
+        }
+        return mean / array.length;
+    }
+
+    private double[] meanAndGini(double[] array) { // [0] is mean, [1] is gini coef
+        double giniNumerator = 0;
+        double giniDenominator = 0;
+        double mean = 0;
+        Arrays.sort(array);
+        for (int i = 0; i < array.length; i++) {
+            mean += array[i];
+            giniNumerator += array[i] * (i + 1);
+            giniDenominator += array[i];
+        }
+        mean /= array.length;
         giniNumerator *= 2;
-        giniDenominator *= postdocNumberArray.length;
-        giniLeftHand = giniNumerator / giniDenominator;
+        giniDenominator *= array.length;
+        double giniLeftHand = giniNumerator / giniDenominator;
 
-        postdocNumberGini = giniLeftHand - ((1 + postdocNumberArray.length) / postdocNumberArray.length);
+        double giniIndex = giniLeftHand - ((1 + array.length) / array.length);
+        return new double[]{mean, giniIndex};
+    }
 
-            // standard dev of number //
-
-        sumOfSquaredDevs = 0;
-        for (double aPostdocNumberArray : postdocNumberArray) {
-            double squaredDev = aPostdocNumberArray - postdocNumberMean;
+    private double calculateStandardDev(double[] array, double mean) {
+        double sumOfSquaredDevs = 0;
+        for (double aDouble : array) {
+            double squaredDev = aDouble - mean;
             squaredDev *= squaredDev;
             sumOfSquaredDevs += squaredDev;
         }
-        sumOfSquaredDevs /= postdocNumberArray.length;
-        postdocNumberStandardDev = Math.sqrt(sumOfSquaredDevs);
+        sumOfSquaredDevs /= array.length;
+        return Math.sqrt(sumOfSquaredDevs);
+    }
 
-        // mean and gini of duration //
-
-        giniNumerator = 0;
-        giniDenominator = 0;
-        postdocDurationMean = 0;
-        Arrays.sort(postdocDurationArray);
-        for(int i = 0; i < postdocDurationArray.length;i++){
-            postdocDurationMean +=  postdocDurationArray[i];
-            giniNumerator += postdocDurationArray[i] * (i + 1);
-            giniDenominator += postdocDurationArray[i];
-        }
-        postdocDurationMean /= postdocDurationArray.length;
-        giniNumerator *= 2;
-        giniDenominator *= postdocDurationArray.length;
-        giniLeftHand = giniNumerator / giniDenominator;
-
-        postdocDurationGini = giniLeftHand - ((1 + postdocDurationArray.length) / postdocDurationArray.length);
-
-            // standard dev of duration //
-
-        sumOfSquaredDevs = 0;
-        for (double aPostdocDurationArray : postdocDurationArray) {
-            double squaredDev = aPostdocDurationArray - postdocDurationMean;
+    private double calculateStandardDev(int[] array, double mean) {
+        double sumOfSquaredDevs = 0;
+        for (int anInt : array) {
+            double squaredDev = ((double) anInt) - mean;
             squaredDev *= squaredDev;
             sumOfSquaredDevs += squaredDev;
         }
-        sumOfSquaredDevs /= postdocDurationArray.length;
-        postdocDurationStandardDev = Math.sqrt(sumOfSquaredDevs);
+        sumOfSquaredDevs /= array.length;
+        return Math.sqrt(sumOfSquaredDevs);
     }
 }
